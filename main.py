@@ -10,13 +10,13 @@ bot = telebot.TeleBot(token)
 
 lessons_to_add = dict()
 
-WEEKDAYS = {"Понедельник" : "monday",
-            "Вторник" : "tuesday",
-            "Среда" : "wednesday",
-            "Четверг" : "thursday",
-            "Пятница" : "friday",
-            "Суббота" : "saturday",
-            "Воскресенье" : "sunday"}
+WEEKDAYS = {"понедельник" : "monday",
+            "вторник" : "tuesday",
+            "среда" : "wednesday",
+            "четверг" : "thursday",
+            "пятница" : "friday",
+            "суббота" : "saturday",
+            "воскресенье" : "sunday"}
 
 @bot.message_handler(commands = ['start'])
 def start(message):
@@ -41,8 +41,8 @@ def start_add_lesson(message):
     bot.register_next_step_handler(message, add_weekday)
 
 def add_weekday(message):
-    if message.text in WEEKDAYS:
-        lessons_to_add[message.from_user.username].append(WEEKDAYS[message.text])
+    if message.text.lower() in WEEKDAYS:
+        lessons_to_add[message.from_user.username].append(WEEKDAYS[message.text.lower()])
         bot.send_message(message.chat.id, "Во сколько у тебя пара ? (Введи в формета 08:45)", reply_markup = telebot.types.ReplyKeyboardRemove())
         bot.register_next_step_handler(message, add_time)
     else:

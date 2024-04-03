@@ -38,38 +38,43 @@ WEEKDAYS_NUMBER = {0 : "monday",
             5 : "saturday",
             6 : "sunday"}
 
+def minus_minutes_time(hours, minutes, delta = 5):
+    minutes -= delta
+    if (minutes < 0):
+        hours += minutes // 60
+        minutes = 60 - (-minutes) % 60
+    return hours, minutes
+
 def time_handler():
     global today_lessons
     global cur_weekday
-    for user in data:
-        for today_lesson_dict in data[user][WEEKDAYS_NUMBER[cur_weekday]]:
-            for time in today_lesson_dict:
-                lesson = [user, today_lesson_dict[time][0], today_lesson_dict[time][1]]
-                if time not in today_lessons:
-                    today_lessons[time] = []
-                today_lessons[time].append(lesson)
-
-    
-    while(1):
-        current_datetime = datetime.datetime.now()
-        time = str(current_datetime)[11:16]
-        weekday = current_datetime.weekday()
-        if (weekday != cur_weekday):
-            cur_weekday = weekday
-            today_lessons = dict()
-            time_handler()
-        else:
-            for today_time in today_lessons:
-                if today_time == time:
-                    for lesson in today_lessons[today_time]:
-                        markup = telebot.types.ReplyKeyboardMarkup()
-                        btn1 = telebot.types.KeyboardButton("Добавить пару")
-                        btn2 = telebot.types.KeyboardButton("Помощь")
-                        markup.row(btn1, btn2)
-                        bot.send_message(lesson[0], f"У тебя сейчас пара:\"{lesson[1]}\" в аудитории {lesson[2]}", reply_markup = markup)
-                        today_lessons[today_time].remove(lesson)
-        
-
+    while (1):
+        for user in data:
+            for today_lesson_dict in data[user][WEEKDAYS_NUMBER[cur_weekday]]:
+                for time in today_lesson_dict:
+                    lesson = [user, today_lesson_dict[time][0], today_lesson_dict[time][1]]
+                    if time not in today_lessons:
+                        today_lessons[time] = []
+                    today_lessons[time].append(lesson)
+        weekday = cur_weekday
+        while(1):
+            current_datetime = datetime.datetime.now()
+            time = str(current_datetime)[11:16]
+            weekday = current_datetime.weekday()
+            if (weekday != cur_weekday):
+                cur_weekday = weekday
+                today_lessons = dict()
+                break
+            else:
+                for today_time in today_lessons:
+                    if today_time == time:
+                        for lesson in today_lessons[today_time]:
+                            markup = telebot.types.ReplyKeyboardMarkup()
+                            btn1 = telebot.types.KeyboardButton("Добавить пару")
+                            btn2 = telebot.types.KeyboardButton("Помощь")
+                            markup.row(btn1, btn2)
+                            bot.send_message(lesson[0], f"У тебя сейчас пара:\"{lesson[1]}\" в аудитории {lesson[2]}", reply_markup = markup)
+                            today_lessons[today_time].remove(lesson)
 
 def add_user(id, username):
     data[id] = dict()
@@ -130,10 +135,17 @@ def add_time(message):
         try:
             hours = int(message.text[:2])
             minutes = int(message.text[3:])
+            if (hours > 24 or minutes > 60):
+                bot.send_message(message.chat.id, "Неверное время, попробуй ещё раз")
+                bot.register_next_step_handler(message, add_time)
+                return
+            else:
+                hours, minutes = minus_minutes_time(hours, minutes, 5)
+
         except:
             bot.send_message(message.chat.id, "Неверный формат, попробуй ещё раз")
             bot.register_next_step_handler(message, add_time)
-        lessons_to_add[str(message.chat.id)].append(message.text)
+        lessons_to_add[str(message.chat.id)].append(f"{hours}:{minutes}")
         bot.send_message(message.chat.id, "Напиши название пары")
         bot.register_next_step_handler(message, add_lesson_name)
 
@@ -150,9 +162,7 @@ def add_lesson_place(message):
     btn2 = telebot.types.KeyboardButton("Помощь")
     markup.row(btn1, btn2)
     bot.send_message(message.chat.id, f"Твоя пара, под названием {lessons_to_add[str(message.chat.id)][2]}"
-                     " добавлена в базу и теперь ты будешь получать уведомления о ней за 5 минут до начала "
-                     "(на самом деле не будешь, но информация о твоей паре добавилась, бот"
-                      " ещё находится на этапе разработки, спасибо, что помогаешь в его тестировании)", reply_markup = markup)
+                     " добавлена в базу и теперь ты будешь получать уведомления о ней за 5 минут до начала", reply_markup = markup)
     del lessons_to_add[str(message.chat.id)]
 
 

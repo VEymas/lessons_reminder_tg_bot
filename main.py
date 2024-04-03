@@ -22,13 +22,13 @@ data_fd.close()
 
 lessons_to_add = dict()
 
-WEEKDAYS = {"понедельник" : "monday",
-            "вторник" : "tuesday",
-            "среда" : "wednesday",
-            "четверг" : "thursday",
-            "пятница" : "friday",
-            "суббота" : "saturday",
-            "воскресенье" : "sunday"}
+WEEKDAYS = {"понедельник" : 0,
+            "вторник" : 1,
+            "среда" : 2,
+            "четверг" : 3,
+            "пятница" : 4,
+            "суббота" : 5,
+            "воскресенье" : 6}
 
 WEEKDAYS_NUMBER = {0 : "monday",
             1 : "tuesday",
@@ -36,13 +36,16 @@ WEEKDAYS_NUMBER = {0 : "monday",
             3 : "thursday",
             4 : "friday",
             5 : "saturday",
-            6 : "sunday"}
+            6 : "sunday",
+            -1 : "sunday"}
 
 def minus_minutes_time(hours, minutes, delta = 5):
     minutes -= delta
     if (minutes < 0):
         hours += minutes // 60
         minutes = 60 - (-minutes) % 60
+    if hours == -1:
+        hours = 23
     return hours, minutes
 
 def time_handler():
@@ -135,12 +138,14 @@ def add_time(message):
         try:
             hours = int(message.text[:2])
             minutes = int(message.text[3:])
-            if (hours > 24 or minutes > 60):
+            if (hours >= 24 or minutes >= 60):
                 bot.send_message(message.chat.id, "Неверное время, попробуй ещё раз")
                 bot.register_next_step_handler(message, add_time)
                 return
-            else:
-                hours, minutes = minus_minutes_time(hours, minutes, 5)
+            hours, minutes = minus_minutes_time(hours, minutes, 5)
+            if (hours == 23 and minutes >= 55):
+                lessons_to_add[str(message.chat.id)][0] -= 1
+
 
         except:
             bot.send_message(message.chat.id, "Неверный формат, попробуй ещё раз")
@@ -167,7 +172,7 @@ def add_lesson_place(message):
 
 
 def add_lesson(chat_id):
-    weekday = lessons_to_add[chat_id][0]
+    weekday = WEEKDAYS_NUMBER[lessons_to_add[chat_id][0]]
     time = lessons_to_add[chat_id][1]
     lesson_name = lessons_to_add[chat_id][2]
     lesson_place = lessons_to_add[chat_id][3]

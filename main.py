@@ -8,6 +8,7 @@ import time
 DATA_FILE_NAME = "data/database.json"
 
 today_lessons = dict()
+cur_weekday = datetime.datetime.now().weekday()
 
 # initialize bot
 token_file = open("data/token.txt", 'r')
@@ -39,10 +40,35 @@ WEEKDAYS_NUMBER = {0 : "monday",
 
 def time_handler():
     global today_lessons
+    global cur_weekday
+    for user in data:
+        for today_lesson_dict in data[user][WEEKDAYS_NUMBER[cur_weekday]]:
+            for time in today_lesson_dict:
+                lesson = [user, today_lesson_dict[time][0], today_lesson_dict[time][1]]
+                if time not in today_lessons:
+                    today_lessons[time] = []
+                today_lessons[time].append(lesson)
+
     
     while(1):
-        current_time = datetime.datetime.now()
-        print(current_time)
+        current_datetime = datetime.datetime.now()
+        time = str(current_datetime)[11:16]
+        weekday = current_datetime.weekday()
+        if (weekday != cur_weekday):
+            cur_weekday = weekday
+            today_lessons = dict()
+            time_handler()
+        else:
+            for today_time in today_lessons:
+                if today_time == time:
+                    for lesson in today_lessons[today_time]:
+                        markup = telebot.types.ReplyKeyboardMarkup()
+                        btn1 = telebot.types.KeyboardButton("Добавить пару")
+                        btn2 = telebot.types.KeyboardButton("Помощь")
+                        markup.row(btn1, btn2)
+                        bot.send_message(lesson[0], f"У тебя сейчас пара:\"{lesson[1]}\" в аудитории {lesson[2]}", reply_markup = markup)
+                        today_lessons[today_time].remove(lesson)
+        
 
 
 def add_user(id, username):
@@ -97,7 +123,6 @@ def add_weekday(message):
         bot.register_next_step_handler(message, add_weekday)
 
 def add_time(message):
-    # TODO think about time
     if len(message.text) != 5 or message.text[2] != ':':
         bot.send_message(message.chat.id, "Неверный формат, попробуй ещё раз")
         bot.register_next_step_handler(message, add_time)
@@ -108,7 +133,6 @@ def add_time(message):
         except:
             bot.send_message(message.chat.id, "Неверный формат, попробуй ещё раз")
             bot.register_next_step_handler(message, add_time)
-        # lesson_time = datetime.time(hour = hours, minute = minutes)
         lessons_to_add[str(message.chat.id)].append(message.text)
         bot.send_message(message.chat.id, "Напиши название пары")
         bot.register_next_step_handler(message, add_lesson_name)
@@ -137,6 +161,14 @@ def add_lesson(chat_id):
     time = lessons_to_add[chat_id][1]
     lesson_name = lessons_to_add[chat_id][2]
     lesson_place = lessons_to_add[chat_id][3]
+
+    global cur_weekday
+    if (WEEKDAYS_NUMBER[cur_weekday] == weekday):
+        lesson = [chat_id, lesson_name, lesson_place]
+        if time not in today_lessons:
+            today_lessons[time] = []
+        today_lessons[time].append(lesson)
+
     data[chat_id][weekday].append({time : [lesson_name, lesson_place]})
     data_fd = open(DATA_FILE_NAME, "w")
     json.dump(data, data_fd, indent = 4)
@@ -154,10 +186,14 @@ def info(message):
     elif message.text == "Помощь":
         help(message)
     else:
+        markup = telebot.types.ReplyKeyboardMarkup()
+        btn1 = telebot.types.KeyboardButton("Добавить пару")
+        btn2 = telebot.types.KeyboardButton("Помощь")
+        markup.row(btn1, btn2)
         bot.send_message(message.chat.id, "Не пишите мне, пожалуйста, ничего кроме команд. Я глупенький, обычные сообщения не обрабатываю🥺. Да и не за чем мне это."
-                     " Для какого-либо фидбека лучше напишите напрямую моему папе @VEymas")
+                     " Для какого-либо фидбека лучше напишите напрямую моему папе @VEymas", reply_markup = markup)
         
-# t1 = threading.Thread(target = time_handler) 
-# t1.start()
+t1 = threading.Thread(target = time_handler) 
+t1.start()
 
 bot.polling(none_stop = True)

@@ -54,7 +54,7 @@ def time_handler():
         for user in data:
             for today_lesson_dict in data[user][WEEKDAYS_NUMBER[cur_weekday]]:
                 for time_ in today_lesson_dict:
-                    lesson = [user, today_lesson_dict[time][0], today_lesson_dict[time][1]]
+                    lesson = [user, today_lesson_dict[time_][0], today_lesson_dict[time_][1]]
                     if time_ not in today_lessons:
                         today_lessons[time_] = []
                     today_lessons[time_].append(lesson)
@@ -102,7 +102,6 @@ def start(message):
 @bot.message_handler(commands = ['add_lesson'])
 def start_add_lesson(message):
     if str(message.chat.id) not in data:
-        print(f"user {message.chat.id} not in data")
         add_user(str(message.chat.id), message.from_user.username)
 
     lessons_to_add[str(message.chat.id)] = []

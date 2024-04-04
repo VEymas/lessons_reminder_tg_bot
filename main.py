@@ -192,7 +192,8 @@ def add_lesson(chat_id):
 
 @bot.message_handler(commands = ['help'])
 def help(message):
-    bot.send_message(message.chat.id, "Тут буит помощь")
+    bot.send_message(message.chat.id, "Благодаря кнопочкам снизу, ты можешь сообщить боту о своих парах и "
+    "он за 5 минут до их начала будет напоминать о месте их проведения")
 
 @bot.message_handler()
 def info(message):

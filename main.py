@@ -54,15 +54,15 @@ def time_handler():
     while (1):
         for user in data:
             for today_lesson_dict in data[user][WEEKDAYS_NUMBER[cur_weekday]]:
-                for time in today_lesson_dict:
+                for time_ in today_lesson_dict:
                     lesson = [user, today_lesson_dict[time][0], today_lesson_dict[time][1]]
-                    if time not in today_lessons:
-                        today_lessons[time] = []
-                    today_lessons[time].append(lesson)
+                    if time_ not in today_lessons:
+                        today_lessons[time_] = []
+                    today_lessons[time_].append(lesson)
         weekday = cur_weekday
         while(1):
             current_datetime = datetime.datetime.now()
-            time = str(current_datetime)[11:16]
+            current_time = str(current_datetime)[11:16]
             weekday = current_datetime.weekday()
             if (weekday != cur_weekday):
                 cur_weekday = weekday
@@ -70,14 +70,15 @@ def time_handler():
                 break
             else:
                 for today_time in today_lessons:
-                    if today_time == time:
+                    if today_time == current_time:
                         for lesson in today_lessons[today_time]:
                             markup = telebot.types.ReplyKeyboardMarkup()
                             btn1 = telebot.types.KeyboardButton("Добавить пару")
                             btn2 = telebot.types.KeyboardButton("Помощь")
                             markup.row(btn1, btn2)
-                            bot.send_message(lesson[0], f"У тебя сейчас пара:\"{lesson[1]}\" в аудитории {lesson[2]}", reply_markup = markup)
+                            bot.send_message(lesson[0], f"У тебя через 5 минут пара:\"{lesson[1]}\" в аудитории {lesson[2]}", reply_markup = markup)
                             today_lessons[today_time].remove(lesson)
+            time.sleep(5)
 
 def add_user(id, username):
     data[id] = dict()

@@ -1,7 +1,6 @@
 import telebot
 import datetime
 import json
-import multiprocessing
 import threading
 import time
 

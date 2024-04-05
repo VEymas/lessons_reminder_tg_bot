@@ -3,11 +3,12 @@ import datetime
 import json
 import threading
 import time
+import pytz
 
 DATA_FILE_NAME = "data/database.json"
 
 today_lessons = dict()
-cur_weekday = datetime.datetime.now().weekday()
+cur_weekday = datetime.datetime.now(pytz.timezone('Europe/Moscow')).weekday()
 
 # initialize bot
 token_file = open("data/token.txt", 'r')
@@ -60,7 +61,7 @@ def time_handler():
                     today_lessons[time_].append(lesson)
         weekday = cur_weekday
         while(1):
-            current_datetime = datetime.datetime.now()
+            current_datetime = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
             current_time = str(current_datetime)[11:16]
             weekday = current_datetime.weekday()
             if (weekday != cur_weekday):

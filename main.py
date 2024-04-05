@@ -150,7 +150,14 @@ def add_time(message):
         except:
             bot.send_message(message.chat.id, "Неверный формат, попробуй ещё раз")
             bot.register_next_step_handler(message, add_time)
-        lessons_to_add[str(message.chat.id)].append(f"{hours}:{minutes}")
+        if hours < 10 and minutes < 10:
+            lessons_to_add[str(message.chat.id)].append(f"0{hours}:0{minutes}")
+        elif hours < 10:
+            lessons_to_add[str(message.chat.id)].append(f"0{hours}:{minutes}")
+        elif minutes < 10:
+            lessons_to_add[str(message.chat.id)].append(f"{hours}:0{minutes}")
+        else:
+            lessons_to_add[str(message.chat.id)].append(f"{hours}:{minutes}")
         bot.send_message(message.chat.id, "Напиши название пары")
         bot.register_next_step_handler(message, add_lesson_name)
 

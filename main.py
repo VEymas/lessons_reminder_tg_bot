@@ -116,7 +116,7 @@ def start_add_lesson(message):
     btn5 = telebot.types.KeyboardButton("Пятница")
     btn6 = telebot.types.KeyboardButton("Суббота")
     markup.row(btn5, btn6)
-    btn7 = telebot.types.KeyboardButton("Воскресенье???")
+    btn7 = telebot.types.KeyboardButton("Воскресенье")
     markup.row(btn7)
     bot.send_message(message.chat.id, "В какой день недели у тебя пара?", reply_markup = markup)
     bot.register_next_step_handler(message, add_weekday)

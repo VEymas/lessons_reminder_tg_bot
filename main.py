@@ -22,6 +22,16 @@ data_fd.close()
 
 lessons_to_add = dict()
 
+WEEKDAYS_NAME = set(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])
+
+RUS_WEEKDAYS_FROM_ENG_WEEKDAYS = {"monday" : "Понедельник",
+            "tuesday" : "Вторник",
+            "wednesday" : "Среда",
+            "thursday" : "Четверг",
+            "friday" : "Пятница",
+            "saturday" : "Суббота",
+            "sunday" : "Воскресенье"}
+
 WEEKDAYS = {"понедельник" : 0,
             "вторник" : 1,
             "среда" : 2,
@@ -72,13 +82,26 @@ def time_handler():
                 for today_time in today_lessons:
                     if today_time == current_time:
                         for lesson in today_lessons[today_time]:
-                            markup = telebot.types.ReplyKeyboardMarkup()
-                            btn1 = telebot.types.KeyboardButton("Добавить пару")
-                            btn2 = telebot.types.KeyboardButton("Помощь")
-                            markup.row(btn1, btn2)
-                            bot.send_message(lesson[0], f"У тебя через 5 минут пара:\"{lesson[1]}\" в аудитории {lesson[2]}", reply_markup = markup)
+                            bot.send_message(lesson[0], f"У тебя через 5 минут пара:\"{lesson[1]}\" в аудитории {lesson[2]}")
                             today_lessons[today_time].remove(lesson)
             time.sleep(5)
+            
+def get_all_lessons_for_user(chat_id):
+    message_text = ""
+    for weekday in data[chat_id]:
+        if weekday not in WEEKDAYS_NAME:
+            continue
+        message_weekday_text = f"{RUS_WEEKDAYS_FROM_ENG_WEEKDAYS[weekday]}:\n"
+        cnt = 0
+        for today_lesson_dict in data[chat_id][weekday]:
+            for time_ in today_lesson_dict:
+                cnt += 1
+                message_weekday_text += f"{cnt}. {time_} - {today_lesson_dict[time_][0]} в аудитории {today_lesson_dict[time_][1]}\n"
+        if cnt:
+            message_text += message_weekday_text
+    if (message_text == ""):
+        message_text = "К сожалению, ты ещё не добавил(а) ни одной пары😢"
+    bot.send_message(int(chat_id), message_text)
 
 def add_user(id, username):
     data[id] = dict()
@@ -96,7 +119,9 @@ def start(message):
     markup = telebot.types.ReplyKeyboardMarkup()
     btn1 = telebot.types.KeyboardButton("Добавить пару")
     btn2 = telebot.types.KeyboardButton("Помощь")
+    btn3 = telebot.types.KeyboardButton("Мои пары")
     markup.row(btn1, btn2)
+    markup.row(btn3)
     bot.send_message(message.chat.id, "Привет, благодаря мне ты можешь получать уведомления о своих" 
                      "парах и месте их проведения незадолго до их начала", reply_markup = markup)
 
@@ -172,7 +197,9 @@ def add_lesson_place(message):
     markup = telebot.types.ReplyKeyboardMarkup()
     btn1 = telebot.types.KeyboardButton("Добавить пару")
     btn2 = telebot.types.KeyboardButton("Помощь")
+    btn3 = telebot.types.KeyboardButton("Мои пары")
     markup.row(btn1, btn2)
+    markup.row(btn3)
     bot.send_message(message.chat.id, f"Твоя пара, под названием {lessons_to_add[str(message.chat.id)][2]}"
                      " добавлена в базу и теперь ты будешь получать уведомления о ней за 5 минут до начала", reply_markup = markup)
     del lessons_to_add[str(message.chat.id)]
@@ -208,11 +235,15 @@ def info(message):
         start_add_lesson(message)
     elif message.text == "Помощь":
         help(message)
+    elif message.text == "Мои пары":
+        get_all_lessons_for_user(str(message.chat.id))
     else:
         markup = telebot.types.ReplyKeyboardMarkup()
         btn1 = telebot.types.KeyboardButton("Добавить пару")
         btn2 = telebot.types.KeyboardButton("Помощь")
+        btn3 = telebot.types.KeyboardButton("Мои пары")
         markup.row(btn1, btn2)
+        markup.row(btn3)
         bot.send_message(message.chat.id, "Не пишите мне, пожалуйста, ничего кроме команд. Я глупенький, обычные сообщения не обрабатываю🥺. Да и не за чем мне это."
                      " Для какого-либо фидбека лучше напишите напрямую моему папе @VEymas", reply_markup = markup)
         

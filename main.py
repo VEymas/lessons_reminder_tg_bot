@@ -103,6 +103,19 @@ def get_all_lessons_for_user(chat_id):
         message_text = "К сожалению, ты ещё не добавил(а) ни одной пары😢"
     bot.send_message(int(chat_id), message_text)
 
+def get_today_lessons_for_user(chat_id):
+    lessons = ""
+    cnt = 0
+    for today_lesson_dict in data[chat_id][WEEKDAYS_NUMBER[cur_weekday]]:
+        for time_ in today_lesson_dict:
+            cnt += 1
+            lessons += f"{cnt}. {time_} - {today_lesson_dict[time_][0]} в аудитории {today_lesson_dict[time_][1]}\n"
+    if lessons == "":
+        message_text = "На сегодняшний день у тебя не добавлено пар"
+    else:
+        message_text = f"Сегодня у тебя:\n{lessons}"
+    bot.send_message(int(chat_id), message_text)
+
 def add_user(id, username):
     data[id] = dict()
     data[id]["monday"] = []
@@ -119,9 +132,10 @@ def start(message):
     markup = telebot.types.ReplyKeyboardMarkup()
     btn1 = telebot.types.KeyboardButton("Добавить пару")
     btn2 = telebot.types.KeyboardButton("Помощь")
-    btn3 = telebot.types.KeyboardButton("Мои пары")
+    btn3 = telebot.types.KeyboardButton("Сегодняшние пары")
+    btn4 = telebot.types.KeyboardButton("Все пары")
     markup.row(btn1, btn2)
-    markup.row(btn3)
+    markup.row(btn3, btn4)
     bot.send_message(message.chat.id, "Привет, благодаря мне ты можешь получать уведомления о своих" 
                      "парах и месте их проведения незадолго до их начала", reply_markup = markup)
 
@@ -197,9 +211,10 @@ def add_lesson_place(message):
     markup = telebot.types.ReplyKeyboardMarkup()
     btn1 = telebot.types.KeyboardButton("Добавить пару")
     btn2 = telebot.types.KeyboardButton("Помощь")
-    btn3 = telebot.types.KeyboardButton("Мои пары")
+    btn3 = telebot.types.KeyboardButton("Сегодняшние пары")
+    btn4 = telebot.types.KeyboardButton("Все пары")
     markup.row(btn1, btn2)
-    markup.row(btn3)
+    markup.row(btn3, btn4)
     bot.send_message(message.chat.id, f"Твоя пара, под названием {lessons_to_add[str(message.chat.id)][2]}"
                      " добавлена в базу и теперь ты будешь получать уведомления о ней за 5 минут до начала", reply_markup = markup)
     del lessons_to_add[str(message.chat.id)]
@@ -235,15 +250,18 @@ def info(message):
         start_add_lesson(message)
     elif message.text == "Помощь":
         help(message)
-    elif message.text == "Мои пары":
+    elif message.text == "Все пары":
         get_all_lessons_for_user(str(message.chat.id))
+    elif message.text == "Сегодняшние пары":
+        get_today_lessons_for_user(str(message.chat.id))
     else:
         markup = telebot.types.ReplyKeyboardMarkup()
         btn1 = telebot.types.KeyboardButton("Добавить пару")
         btn2 = telebot.types.KeyboardButton("Помощь")
-        btn3 = telebot.types.KeyboardButton("Мои пары")
+        btn3 = telebot.types.KeyboardButton("Сегодняшние пары")
+        btn4 = telebot.types.KeyboardButton("Все пары")
         markup.row(btn1, btn2)
-        markup.row(btn3)
+        markup.row(btn3, btn4)
         bot.send_message(message.chat.id, "Не пишите мне, пожалуйста, ничего кроме команд. Я глупенький, обычные сообщения не обрабатываю🥺. Да и не за чем мне это."
                      " Для какого-либо фидбека лучше напишите напрямую моему папе @VEymas", reply_markup = markup)
         
